@@ -113,7 +113,8 @@ from tensorflow.python.framework import graph_util
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.platform import gfile
 from tensorflow.python.util import compat
-
+import tensorflow.compat.v1 as tf
+tf.disable_v2_behavior()
 FLAGS = None
 
 # These are all parameters that are tied to the particular model architecture
@@ -140,7 +141,7 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
     into training, testing, and validation sets within each label.
   """
   if not gfile.Exists(image_dir):
-    tf.logging.error("Image directory '" + image_dir + "' not found.")
+    tf.compat.v1.logging.error("Image directory '" + image_dir + "' not found.")
     return None
   result = collections.OrderedDict()
   sub_dirs = [
@@ -159,13 +160,13 @@ def create_image_lists(image_dir, testing_percentage, validation_percentage):
       file_glob = os.path.join(image_dir, dir_name, '*.' + extension)
       file_list.extend(gfile.Glob(file_glob))
     if not file_list:
-      tf.logging.warning('No files found')
+      tf.compat.v1.logging.warning('No files found')
       continue
     if len(file_list) < 20:
       tf.logging.warning(
           'WARNING: Folder has less than 20 images, which may cause issues.')
     elif len(file_list) > MAX_NUM_IMAGES_PER_CLASS:
-      tf.logging.warning(
+      tf.compat.v1.logging.warning(
           'WARNING: Folder {} has more than {} images. Some images will '
           'never be selected.'.format(dir_name, MAX_NUM_IMAGES_PER_CLASS))
     label_name = re.sub(r'[^a-z0-9]+', ' ', dir_name.lower())
@@ -336,8 +337,8 @@ def maybe_download_and_extract(data_url):
     filepath, _ = urllib.request.urlretrieve(data_url, filepath, _progress)
     print()
     statinfo = os.stat(filepath)
-    tf.logging.info('Successfully downloaded', filename, statinfo.st_size,
-                    'bytes.')
+    # tf.logging.info('Successfully downloaded', filename, statinfo.st_size,
+    #                 'bytes.')
   tarfile.open(filepath, 'r:gz').extractall(dest_directory)
 
 
@@ -833,9 +834,10 @@ def save_graph_to_file(sess, graph, graph_file_name):
 
 def prepare_file_system():
   # Setup the directory we'll write summaries to for TensorBoard
-  if tf.gfile.Exists(FLAGS.summaries_dir):
+
+  if tf.io.gfile.exists(FLAGS.summaries_dir):
     tf.gfile.DeleteRecursively(FLAGS.summaries_dir)
-  tf.gfile.MakeDirs(FLAGS.summaries_dir)
+  tf.io.gfile.makedirs(FLAGS.summaries_dir)
   if FLAGS.intermediate_store_frequency > 0:
     ensure_dir_exists(FLAGS.intermediate_output_graphs_dir)
   return
@@ -968,7 +970,7 @@ def add_jpeg_decoding(input_width, input_height, input_depth, input_mean,
 def main(_):
   # Needed to make sure the logging output is visible.
   # See https://github.com/tensorflow/tensorflow/issues/3047
-  tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
+  #tf.compat.v1.logging.set_verbosity(tf.compat.v1.logging.info)
   #tf.logging.set_verbosity(tf.logging.INFO)
 
   # Prepare necessary directories  that can be used during training
@@ -990,10 +992,10 @@ def main(_):
                                    FLAGS.validation_percentage)
   class_count = len(image_lists.keys())
   if class_count == 0:
-    tf.logging.error('No valid folders of images found at ' + FLAGS.image_dir)
+    tf.compat.v1.logging.error('No valid folders of images found at ' + FLAGS.image_dir)
     return -1
   if class_count == 1:
-    tf.logging.error('Only one valid folder of images found at ' +
+    tf.compat.v1.logging.error('Only one valid folder of images found at ' +
                      FLAGS.image_dir +
                      ' - multiple classes are needed for classification.')
     return -1
@@ -1325,5 +1327,5 @@ if __name__ == '__main__':
       for more information on Mobilenet.\
       """)
   FLAGS, unparsed = parser.parse_known_args()
-  tf.compat.v1.app.run(main=main, argv=[sys.argv[0]] + unparsed)
+  tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)
   #tf.app.run(main=main, argv=[sys.argv[0]] + unparsed)

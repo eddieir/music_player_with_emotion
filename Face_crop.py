@@ -20,7 +20,9 @@ for image in images:
         f_name = image.split('/')
         f_name = f_name[-1]
         cv2.imshow("Checking",sub_face)
+        import time
+        time.sleep(10)
         cv2.waitKey(500)
-        cv2.destroyWindow()
+        #cv2.destroyWindow()
 
         cv2.imwrite("resized_"+image,sub_face)
